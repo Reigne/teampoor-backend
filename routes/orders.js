@@ -21,59 +21,69 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-// Function to handle PayMongo checkout
-const handlePayMongo = async (orderItemsDetails, temporaryLink) => {
+const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+const MAX_RETRIES = 3;
+let retries = 0;
+
+const createCheckoutSessionWithRetry = async (options) => {
   try {
-    const lineItems = orderItemsDetails.map((orderItem) => ({
-      currency: "PHP",
-      amount: orderItem.price * orderItem.quantity * 100, // Assuming price is stored in orderItem
-      description: orderItem.productName,
-      name: orderItem.productName,
-      quantity: orderItem.quantity,
-    }));
+    const response = await axios.request(options);
+    return response.data.data.attributes.checkout_url;
+  } catch (error) {
+    if (error.response && error.response.status === 429 && retries < MAX_RETRIES) {
+      const delayTime = Math.pow(2, retries) * 1000; // Exponential backoff
+      console.log(`Rate limited. Retrying in ${delayTime} milliseconds...`);
+      await delay(delayTime);
+      retries++;
+      return createCheckoutSessionWithRetry(options); // Retry the request
+    } else {
+      throw error;
+    }
+  }
+};
 
-    console.log(lineItems, "line");
+const handlePayMongo = async (orderItemsDetails, temporaryLink) => {
+  const lineItems = orderItemsDetails.map((orderItem) => ({
+    currency: "PHP",
+    amount: orderItem.price * orderItem.quantity * 100,
+    description: orderItem.productName,
+    name: orderItem.productName,
+    quantity: orderItem.quantity,
+  }));
 
-    const options = {
-      method: "POST",
-      url: "https://api.paymongo.com/v1/checkout_sessions",
-      headers: {
-        accept: "application/json",
-        "Content-Type": "application/json",
-        authorization:
-          "Basic c2tfdGVzdF9KMlBMVlp3ZHV3OExwV3hGeWhZZnRlQWQ6cGtfdGVzdF9kYmpQaUZDVGJqaHlUUnVCbmVRdW1OSkY=",
-      },
+  const options = {
+    method: "POST",
+    url: "https://api.paymongo.com/v1/checkout_sessions",
+    headers: {
+      accept: "application/json",
+      "Content-Type": "application/json",
+      authorization: "Your Authorization Token",
+    },
+    data: {
       data: {
-        data: {
-          attributes: {
-            send_email_receipt: true,
-            show_description: true,
-            show_line_items: true,
-            line_items: lineItems,
-            payment_method_types: ["gcash"], // Specify the payment method types you accept
-            description: "Order payment", // Description for the payment
-            success_url: `${temporaryLink}`, // Redirect URL after successful payment
-          },
+        attributes: {
+          send_email_receipt: true,
+          show_description: true,
+          show_line_items: true,
+          line_items: lineItems,
+          payment_method_types: ["gcash"],
+          description: "Order payment",
+          success_url: temporaryLink,
         },
       },
-    };
+    },
+  };
 
-    console.log(options, "options");
-
-    const response = await axios.request(options);
-
-    // Adding a delay of 2 seconds before returning the checkout URL
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-
-    console.log(response, "rees");
-    const checkoutUrl = response.data.data.attributes.checkout_url;
-
-    return checkoutUrl; // Return the checkout URL
+  try {
+    const checkoutUrl = await createCheckoutSessionWithRetry(options);
+    return checkoutUrl;
   } catch (error) {
     console.error("Error creating PayMongo checkout session:", error);
     throw error;
   }
 };
+
 
 const sendEmail = async (userDetails, orderDetails, orderItemsDetails) => {
   try {
@@ -699,6 +709,7 @@ router.get("/paymongo-gcash/:token/:orderId", async (req, res) => {
 //   try {
 //     // Initialize PayMongo SDK with your secret key
 
+
 //     // Create a source
 //     paymongo.links
 //       .create({
@@ -738,7 +749,7 @@ router.get("/paymongo-gcash/:token/:orderId", async (req, res) => {
 // router.post("/", async (req, res) => {
 //   try {
 //     // Initialize PayMongo SDK with your secret key
-//
+// 
 
 //     // Create a source
 //     paymongo.links
