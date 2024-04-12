@@ -538,7 +538,7 @@ router.post("/", async (req, res) => {
 
       const items = orderItemsDetails.map((orderItem) => ({
         currency: "PHP",
-        amount: orderItem.price * orderItem.quantity * 100, // Assuming price is stored in orderItem
+        amount: orderItem.price * 100, // Assuming price is stored in orderItem
         description: orderItem.productName,
         name: orderItem.productName,
         quantity: orderItem.quantity,
