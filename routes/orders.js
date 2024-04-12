@@ -62,6 +62,9 @@ const handlePayMongo = async (orderItemsDetails, temporaryLink) => {
 
     const response = await axios.request(options);
 
+    // Adding a delay of 2 seconds before returning the checkout URL
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+
     console.log(response, "rees");
     const checkoutUrl = response.data.data.attributes.checkout_url;
 
@@ -696,7 +699,6 @@ router.get("/paymongo-gcash/:token/:orderId", async (req, res) => {
 //   try {
 //     // Initialize PayMongo SDK with your secret key
 
-
 //     // Create a source
 //     paymongo.links
 //       .create({
@@ -736,7 +738,7 @@ router.get("/paymongo-gcash/:token/:orderId", async (req, res) => {
 // router.post("/", async (req, res) => {
 //   try {
 //     // Initialize PayMongo SDK with your secret key
-// 
+//
 
 //     // Create a source
 //     paymongo.links
