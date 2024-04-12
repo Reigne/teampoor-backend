@@ -12,6 +12,9 @@ const { PaymongoToken } = require("../models/paymongoToken");
 const mongoose = require("mongoose");
 const { log } = require("console");
 const { Notification } = require("../models/notification");
+const axiosRetry = require('axios-retry').default;
+
+
 // Create a transporter object using your Gmail credentials
 const transporter = nodemailer.createTransport({
   service: "gmail",
@@ -21,68 +24,58 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+// Add this line after importing axios and axios-retry
+axiosRetry(axios, {
+  retries: 5,
+  retryDelay: axiosRetry.exponentialDelay,
+  shouldResetTimeout: true,
+});
 
-const MAX_RETRIES = 3;
-let retries = 0;
-
-const createCheckoutSessionWithRetry = async (options) => {
-  try {
-    const response = await axios.request(options);
-    return response.data.data.attributes.checkout_url;
-  } catch (error) {
-    if (error.response && error.response.status === 429 && retries < MAX_RETRIES) {
-      const delayTime = Math.pow(2, retries) * 1000; // Exponential backoff
-      console.log(`Rate limited. Retrying in ${delayTime} milliseconds...`);
-      await delay(delayTime);
-      retries++;
-      return createCheckoutSessionWithRetry(options); // Retry the request
-    } else {
-      throw error;
-    }
-  }
-};
-
+// Function to handle PayMongo checkout
 const handlePayMongo = async (orderItemsDetails, temporaryLink) => {
-  const lineItems = orderItemsDetails.map((orderItem) => ({
-    currency: "PHP",
-    amount: orderItem.price * orderItem.quantity * 100,
-    description: orderItem.productName,
-    name: orderItem.productName,
-    quantity: orderItem.quantity,
-  }));
+  try {
+    const lineItems = orderItemsDetails.map((orderItem) => ({
+      currency: "PHP",
+      amount: orderItem.price * orderItem.quantity * 100, // Assuming price is stored in orderItem
+      description: orderItem.productName,
+      name: orderItem.productName,
+      quantity: orderItem.quantity,
+    }));
 
-  const options = {
-    method: "POST",
-    url: "https://api.paymongo.com/v1/checkout_sessions",
-    headers: {
-      accept: "application/json",
-      "Content-Type": "application/json",
-      authorization: "Your Authorization Token",
-    },
-    data: {
+    const options = {
+      method: "POST",
+      url: "https://api.paymongo.com/v1/checkout_sessions",
+      headers: {
+        accept: "application/json",
+        "Content-Type": "application/json",
+        authorization:
+          "Basic c2tfdGVzdF9KMlBMVlp3ZHV3OExwV3hGeWhZZnRlQWQ6cGtfdGVzdF9kYmpQaUZDVGJqaHlUUnVCbmVRdW1OSkY=",
+      },
       data: {
-        attributes: {
-          send_email_receipt: true,
-          show_description: true,
-          show_line_items: true,
-          line_items: lineItems,
-          payment_method_types: ["gcash"],
-          description: "Order payment",
-          success_url: temporaryLink,
+        data: {
+          attributes: {
+            send_email_receipt: true,
+            show_description: true,
+            show_line_items: true,
+            line_items: lineItems,
+            payment_method_types: ["gcash"],
+            description: "Order payment",
+            success_url: `${temporaryLink}`,
+          },
         },
       },
-    },
-  };
+    };
 
-  try {
-    const checkoutUrl = await createCheckoutSessionWithRetry(options);
+    const response = await axios.request(options);
+    const checkoutUrl = response.data.data.attributes.checkout_url;
+
     return checkoutUrl;
   } catch (error) {
     console.error("Error creating PayMongo checkout session:", error);
     throw error;
   }
 };
+
 
 
 const sendEmail = async (userDetails, orderDetails, orderItemsDetails) => {
