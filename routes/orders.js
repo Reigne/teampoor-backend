@@ -67,8 +67,8 @@ const handlePayMongo = async (orderItemsDetails, temporaryLink) => {
 
     return checkoutUrl; // Return the checkout URL
   } catch (error) {
-    // console.error("Error creating PayMongo checkout session:", error);
-    // throw error;
+    console.error("Error creating PayMongo checkout session:", error);
+    throw error;
   }
 };
 
