@@ -529,14 +529,22 @@ router.post("/", async (req, res) => {
     if (req.body.paymentMethod === "GCash") {
       const temporaryLink = `http://192.168.100.93:4000/api/v1/orders/paymongo-gcash/${paymongoToken.token}/${order._id}`;
 
-      const checkoutUrl = await handlePayMongo(
-        orderItemsDetails,
-        temporaryLink
-      );
+      // const checkoutUrl = await handlePayMongo(
+      //   orderItemsDetails,
+      //   temporaryLink
+      // );
 
-      console.log(checkoutUrl, "checkout");
+      // console.log(checkoutUrl, "checkout");
 
-      return res.json({ checkoutUrl });
+      const items = orderItemsDetails.map((orderItem) => ({
+        currency: "PHP",
+        amount: orderItem.price * orderItem.quantity * 100, // Assuming price is stored in orderItem
+        description: orderItem.productName,
+        name: orderItem.productName,
+        quantity: orderItem.quantity,
+      }));
+
+      return res.json({ items, temporaryLink });
     }
 
     return res.send(orderObject);
