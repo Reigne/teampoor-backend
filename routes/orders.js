@@ -32,15 +32,13 @@ const handlePayMongo = async (orderItemsDetails, temporaryLink) => {
       quantity: orderItem.quantity,
     }));
 
-    console.log(lineItems, "line");
-
     const options = {
       method: "POST",
       url: "https://api.paymongo.com/v1/checkout_sessions",
       headers: {
-        accept: "application/json",
+        Accept: "application/json",
         "Content-Type": "application/json",
-        authorization:
+        Authorization:
           "Basic c2tfdGVzdF9KMlBMVlp3ZHV3OExwV3hGeWhZZnRlQWQ6cGtfdGVzdF9kYmpQaUZDVGJqaHlUUnVCbmVRdW1OSkY=",
       },
       data: {
@@ -56,28 +54,17 @@ const handlePayMongo = async (orderItemsDetails, temporaryLink) => {
           },
         },
       },
+      retry: 5, // Number of retries
+      retryDelay: (retryCount) => {
+        return retryCount * 1000; // Exponential backoff retry delay
+      },
     };
 
-    console.log(options, "options");
+    const response = await axios(options);
 
-    // const response = await axios.request(options);
-
-    axios
-      .request(options)
-      .then(function (response) {
-        console.log(response.data);
-        const checkoutUrl = response.data.data.attributes.checkout_url;
-
-        return checkoutUrl;
-      })
-      .catch(function (error) {
-        console.error(error);
-      });
-
-    // console.log(response, "rees");
-    // const checkoutUrl = response.data.data.attributes.checkout_url;
-
-    // return checkoutUrl; // Return the checkout URL
+    console.log(response.data);
+    const checkoutUrl = response.data.data.attributes.checkout_url;
+    return checkoutUrl; // Return the checkout URL
   } catch (error) {
     console.error("Error creating PayMongo checkout session:", error);
     throw error;
