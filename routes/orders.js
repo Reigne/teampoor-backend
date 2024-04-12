@@ -12,9 +12,6 @@ const { PaymongoToken } = require("../models/paymongoToken");
 const mongoose = require("mongoose");
 const { log } = require("console");
 const { Notification } = require("../models/notification");
-const axiosRetry = require('axios-retry').default;
-
-
 // Create a transporter object using your Gmail credentials
 const transporter = nodemailer.createTransport({
   service: "gmail",
@@ -22,13 +19,6 @@ const transporter = nodemailer.createTransport({
     user: "reignelegend18@gmail.com",
     pass: "arxzlvahlfuzmbvk",
   },
-});
-
-// Add this line after importing axios and axios-retry
-axiosRetry(axios, {
-  retries: 5,
-  retryDelay: axiosRetry.exponentialDelay,
-  shouldResetTimeout: true,
 });
 
 // Function to handle PayMongo checkout
@@ -41,6 +31,8 @@ const handlePayMongo = async (orderItemsDetails, temporaryLink) => {
       name: orderItem.productName,
       quantity: orderItem.quantity,
     }));
+
+    console.log(lineItems, "line");
 
     const options = {
       method: "POST",
@@ -58,25 +50,39 @@ const handlePayMongo = async (orderItemsDetails, temporaryLink) => {
             show_description: true,
             show_line_items: true,
             line_items: lineItems,
-            payment_method_types: ["gcash"],
-            description: "Order payment",
-            success_url: `${temporaryLink}`,
+            payment_method_types: ["gcash"], // Specify the payment method types you accept
+            description: "Order payment", // Description for the payment
+            success_url: `${temporaryLink}`, // Redirect URL after successful payment
           },
         },
       },
     };
 
-    const response = await axios.request(options);
-    const checkoutUrl = response.data.data.attributes.checkout_url;
+    console.log(options, "options");
 
-    return checkoutUrl;
+    // const response = await axios.request(options);
+
+    axios
+      .request(options)
+      .then(function (response) {
+        console.log(response.data);
+        const checkoutUrl = response.data.data.attributes.checkout_url;
+
+        return checkoutUrl;
+      })
+      .catch(function (error) {
+        console.error(error);
+      });
+
+    // console.log(response, "rees");
+    // const checkoutUrl = response.data.data.attributes.checkout_url;
+
+    // return checkoutUrl; // Return the checkout URL
   } catch (error) {
     console.error("Error creating PayMongo checkout session:", error);
     throw error;
   }
 };
-
-
 
 const sendEmail = async (userDetails, orderDetails, orderItemsDetails) => {
   try {
@@ -702,7 +708,6 @@ router.get("/paymongo-gcash/:token/:orderId", async (req, res) => {
 //   try {
 //     // Initialize PayMongo SDK with your secret key
 
-
 //     // Create a source
 //     paymongo.links
 //       .create({
@@ -742,7 +747,7 @@ router.get("/paymongo-gcash/:token/:orderId", async (req, res) => {
 // router.post("/", async (req, res) => {
 //   try {
 //     // Initialize PayMongo SDK with your secret key
-// 
+//
 
 //     // Create a source
 //     paymongo.links
