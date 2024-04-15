@@ -597,7 +597,15 @@ router.get("/payment/:id", async (req, res) => {
 
     console.log(checkoutUrl, "checkout");
 
-    res.json({ checkoutUrl });
+    const items = orderItemsDetails.map((orderItem) => ({
+      currency: "PHP",
+      amount: orderItem.price * 100, // Assuming price is stored in orderItem
+      description: orderItem.productName,
+      name: orderItem.productName,
+      quantity: orderItem.quantity,
+    }));
+
+    res.json({ items, temporaryLink });
 
     // res.send(user);
   } catch (error) {
