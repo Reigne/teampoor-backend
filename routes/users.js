@@ -51,7 +51,7 @@ const sendEmail = async (email, name, verificationLink) => {
     await transporter.sendMail({
       from: "reignelegend18@gmail.com",
       // to: `${email}`,
-      to: `reignelegend18@gmail.com`,
+      to: `${email}`,
       subject: `TeamPOOR - Email Verification`,
       html: `<!DOCTYPE html>
       <html lang="en">
