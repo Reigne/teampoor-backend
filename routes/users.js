@@ -264,10 +264,10 @@ router.post(`/`, async (req, res) => {
 router.post("/register", async (req, res) => {
   try {
     // Check if email already exists
-    // const existingEmail = await User.findOne({ email: req.body.email });
-    // if (existingEmail) {
-    //   return res.status(400).send("Email already exists");
-    // }
+    const existingEmail = await User.findOne({ email: req.body.email });
+    if (existingEmail) {
+      return res.status(400).send("Email already exists");
+    }
 
     // Check if phone number already exists
     const existingPhone = await User.findOne({ phone: req.body.phone });
@@ -298,11 +298,7 @@ router.post("/register", async (req, res) => {
     // const emailVerification = `${process.env.FRONTEND_URL}/verify/email/${token.token}/${user._id}`;
     const temporaryLink = `http://192.168.100.93:4000/api/v1/users/verify-email/${token.token}/${user._id}`;
 
-    sendEmail(
-      user.email,
-      user.firstname + user.lastname,
-      temporaryLink
-    );
+    sendEmail(user.email, user.firstname + user.lastname, temporaryLink);
 
     res.send(user);
   } catch (error) {
@@ -585,7 +581,6 @@ router.post("/login-employee", async (req, res) => {
     return res.status(500).send("Internal Server Error");
   }
 });
-
 
 // //login
 // router.post("/login", async (req, res) => {
