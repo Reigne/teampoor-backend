@@ -13,14 +13,14 @@ const appointmentSchema = mongoose.Schema({
   appointmentServices: [
     {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "AppointmentService",
+      ref: "AppointmentServices",
       required: true,
     },
   ],
   additionalService: [
     {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "AppointmentService",
+      ref: "AppointmentServices",
       required: true,
     },
   ],

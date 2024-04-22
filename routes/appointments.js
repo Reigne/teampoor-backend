@@ -1,5 +1,5 @@
 const { Appointment } = require("../models/appointment");
-const { AppointmentService } = require("../models/appointment-service");
+const { AppointmentServices } = require("../models/appointment-service");
 const { Service } = require("../models/service");
 const { User } = require("../models/user");
 const express = require("express");
@@ -44,7 +44,7 @@ router.get("/", async (req, res) => {
         path: "user",
       })
       .populate({
-        path: "appointmentService",
+        path: "appointmentServices",
         populate: { path: "service", model: "Service" },
       })
       .sort({ dateOrdered: -1 })
@@ -77,7 +77,7 @@ router.get("/user/:userId", async (req, res) => {
         model: "User", // Model to populate from
       })
       .populate({
-        path: "appointmentService",
+        path: "appointmentServices",
         populate: { path: "service", model: "Service" },
       })
       .sort({ dateOrdered: -1 })
@@ -109,7 +109,7 @@ router.post("/", async (req, res) => {
       return res.status(400).send("The user not found");
     }
 
-    // const appointmentService = [];
+    // const AppointmentServices = [];
 
     const serviceItemsIds = await Promise.all(
       req.body.serviceSelected.map(async (serviceItem) => {
@@ -125,7 +125,7 @@ router.post("/", async (req, res) => {
           return null;
         }
 
-        let newAppointmentService = new AppointmentService({
+        let newAppointmentService = new AppointmentServices({
           service: serviceItem.id,
         });
 
@@ -149,7 +149,7 @@ router.post("/", async (req, res) => {
     };
 
     let appointment = new Appointment({
-      appointmentService: serviceItemsIds,
+      appointmentServices: serviceItemsIds,
       user: req.body.user,
       fullname: req.body.fullname,
       phone: req.body.phone,
@@ -206,7 +206,7 @@ router.get("/:id", async (req, res) => {
         path: "user",
       })
       .populate({
-        path: "appointmentService",
+        path: "appointmentServices",
         populate: { path: "service", model: "Service" },
       })
       .sort({ dateOrdered: -1 })
@@ -685,7 +685,7 @@ router.get("/mechanic/:mechanicId", async (req, res) => {
         path: "user",
       })
       .populate({
-        path: "appointmentService",
+        path: "AppointmentServices",
         populate: { path: "service", model: "Service" },
       })
       .sort({ appointmentDate: 1 }) // Sorting by appointmentDate ascending
@@ -726,7 +726,7 @@ router.get("/mechanic/:mechanicId/upcoming", async (req, res) => {
         path: "user",
       })
       .populate({
-        path: "appointmentService",
+        path: "AppointmentServices",
         populate: { path: "service", model: "Service" },
       })
       .sort({ appointmentDate: 1 }) // Sorting by appointmentDate ascending
@@ -768,7 +768,7 @@ router.get("/mechanic/:mechanicId/today", async (req, res) => {
         path: "user",
       })
       .populate({
-        path: "appointmentService",
+        path: "AppointmentServices",
         populate: { path: "service", model: "Service" },
       })
       .sort({ appointmentDate: 1 }) // Sorting by appointmentDate ascending
@@ -802,7 +802,7 @@ router.get("/mechanic/:mechanicId/completed", async (req, res) => {
         path: "user",
       })
       .populate({
-        path: "appointmentService",
+        path: "AppointmentServices",
         populate: { path: "service", model: "Service" },
       })
       .sort({ appointmentDate: -1 }) // Sorting by appointmentDate descending

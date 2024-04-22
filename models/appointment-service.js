@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 
-const appointmentServiceSchema = mongoose.Schema({
+const AppointmentServicesSchema = mongoose.Schema({
   // note: [
   //   {
   //     remark: {
@@ -14,16 +14,16 @@ const appointmentServiceSchema = mongoose.Schema({
   },
 });
 
-appointmentServiceSchema.virtual("id").get(function () {
+AppointmentServicesSchema.virtual("id").get(function () {
   return this._id.toHexString();
 });
 
 // Fix: toJSON should be a function, not an object
-appointmentServiceSchema.set("toJSON", {
+AppointmentServicesSchema.set("toJSON", {
   virtuals: true,
 });
 
-exports.AppointmentService = mongoose.model(
-  "AppointmentService",
-  appointmentServiceSchema
+exports.AppointmentServices = mongoose.model(
+  "AppointmentServices",
+  AppointmentServicesSchema
 );
