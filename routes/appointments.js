@@ -206,6 +206,9 @@ router.get("/:id", async (req, res) => {
         path: "user",
       })
       .populate({
+        path: "mechanic",
+      })
+      .populate({
         path: "appointmentServices",
         populate: { path: "service", model: "Service" },
       })
@@ -331,8 +334,11 @@ router.put("/backjob/:id", async (req, res) => {
     appointment.appointmentStatus.push(newStatus);
 
     appointment.backJob.comment = req.body.comment;
+    appointment.backJob.createdAt = Date.now();
 
     await appointment.save();
+
+    console.log("backjob", appointment);
 
     const responseData = {
       _id: appointment._id,
@@ -518,26 +524,26 @@ router.put(
       console.log("appoint", appointment);
 
       // Extract the status details from the request body
-      const { status } = req.body;
+      // const { status } = req.body;
 
-      let message = "";
+      // let message = "";
 
-      if (status === "DONE") {
-        message = "Mechanic has completed servicing. Final checks in progress.";
-      }
+      // if (status === "DONE") {
+      //   message = "Mechanic has completed servicing. Final checks in progress.";
+      // }
 
-      // Create a new status object
-      const newStatus = {
-        status,
-        message,
-        timestamp: new Date(), // Timestamp of the update
-      };
+      // // Create a new status object
+      // const newStatus = {
+      //   status,
+      //   message,
+      //   timestamp: new Date(), // Timestamp of the update
+      // };
 
-      // Push the new status object into the appointmentStatus array
-      appointment.appointmentStatus.push(newStatus);
+      // // Push the new status object into the appointmentStatus array
+      // appointment.appointmentStatus.push(newStatus);
 
       // Save the updated appointment to the database
-      await appointment.save();
+      // await appointment.save();
 
       const updateAppointment = await Appointment.findByIdAndUpdate(
         req.params.id,
@@ -546,6 +552,8 @@ router.put(
         },
         { new: true }
       );
+      
+      console.log(updateAppointment);
 
       // // Extract only the necessary information to send in the response
       // const responseData = {
@@ -685,7 +693,7 @@ router.get("/mechanic/:mechanicId", async (req, res) => {
         path: "user",
       })
       .populate({
-        path: "AppointmentServices",
+        path: "appointmentServices",
         populate: { path: "service", model: "Service" },
       })
       .sort({ appointmentDate: 1 }) // Sorting by appointmentDate ascending
@@ -726,7 +734,7 @@ router.get("/mechanic/:mechanicId/upcoming", async (req, res) => {
         path: "user",
       })
       .populate({
-        path: "AppointmentServices",
+        path: "appointmentServices",
         populate: { path: "service", model: "Service" },
       })
       .sort({ appointmentDate: 1 }) // Sorting by appointmentDate ascending
@@ -768,7 +776,7 @@ router.get("/mechanic/:mechanicId/today", async (req, res) => {
         path: "user",
       })
       .populate({
-        path: "AppointmentServices",
+        path: "appointmentServices",
         populate: { path: "service", model: "Service" },
       })
       .sort({ appointmentDate: 1 }) // Sorting by appointmentDate ascending
@@ -802,7 +810,7 @@ router.get("/mechanic/:mechanicId/completed", async (req, res) => {
         path: "user",
       })
       .populate({
-        path: "AppointmentServices",
+        path: "appointmentServices",
         populate: { path: "service", model: "Service" },
       })
       .sort({ appointmentDate: -1 }) // Sorting by appointmentDate descending
