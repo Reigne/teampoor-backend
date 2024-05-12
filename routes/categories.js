@@ -75,7 +75,7 @@ router.post("/", uploadOptions.single("image"), async (req, res) => {
 
   let category = new Category({
     name: req.body.name,
-    image: image,
+    images: image,
   });
 
   category = await category.save();
@@ -119,7 +119,7 @@ router.put("/:id", uploadOptions.single("image"), async (req, res) => {
     req.params.id,
     {
       name: req.body.name,
-      image: image,
+      images: image,
     },
     { new: true }
   );

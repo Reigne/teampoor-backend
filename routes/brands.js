@@ -76,7 +76,7 @@ router.post("/", uploadOptions.single("image"), async (req, res) => {
 
     let brand = new Brand({
       name: req.body.name,
-      image: image,
+      images: image,
     });
 
     console.log(brand);
@@ -126,7 +126,7 @@ router.put("/:id", uploadOptions.single("image"), async (req, res) => {
       req.params.id,
       {
         name: req.body.name,
-        image: image,
+        images: image,
       },
       { new: true }
     );
