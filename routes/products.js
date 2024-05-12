@@ -49,8 +49,11 @@ router.get(`/`, async (req, res) => {
 
   try {
     const productList = await Product.find(filter)
-      .populate("category")
-      .populate("brand");
+      .populate(["brand", "category"])
+      .populate({
+        path: "reviews",
+        populate: { path: "user", model: "User" },
+      });
 
     console.log(productList);
 
