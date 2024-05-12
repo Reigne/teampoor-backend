@@ -5,7 +5,7 @@ const categorySchema = mongoose.Schema({
     type: String,
     require: true,
   },
-  image: {
+  images: {
     public_id: {
       type: String,
     },

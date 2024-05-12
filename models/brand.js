@@ -5,7 +5,7 @@ const brandSchema = mongoose.Schema({
     type: String,
     required: true,
   },
-  image: {
+  images: {
     public_id: {
       type: String,
     },
