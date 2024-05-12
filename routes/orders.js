@@ -527,7 +527,7 @@ router.post("/", async (req, res) => {
     sendEmail(user, order, orderItemsDetails);
 
     if (req.body.paymentMethod === "GCash") {
-      const temporaryLink = `http://192.168.100.93:4000/api/v1/orders/paymongo-gcash/${paymongoToken.token}/${order._id}`;
+      const temporaryLink = `${process.env.WEB_URL}/paymongo-gcash/${paymongoToken.token}/${order._id}`;
 
       // const checkoutUrl = await handlePayMongo(
       //   orderItemsDetails,
@@ -591,7 +591,7 @@ router.get("/payment/:id", async (req, res) => {
 
     let paymongoToken = await PaymongoToken.findOne({ orderId: order._id });
 
-    const temporaryLink = `http://192.168.100.93:4000/api/v1/orders/paymongo-gcash/${paymongoToken.token}/${order._id}`;
+    const temporaryLink = `${process.env.WEB_URL}/paymongo-gcash/${paymongoToken.token}/${order._id}`;
 
     const checkoutUrl = await handlePayMongo(orderItemsDetails, temporaryLink);
 
