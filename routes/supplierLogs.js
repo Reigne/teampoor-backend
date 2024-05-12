@@ -38,7 +38,7 @@ router.post("/", async (req, res) => {
       products.map(async (product) => {
         const { productName, quantity, id } = product;
 
-        console.log(id, 'id');
+        console.log(id, "id");
 
         // Assuming you have a Product model where you store stock logs
         const productData = await Product.findOne({ _id: id });
@@ -92,10 +92,9 @@ router.post("/", async (req, res) => {
 router.get("/", async (req, res) => {
   try {
     // Fetch all supplier logs and populate the 'supplier' field with associated user data
-    const supplierLogs = await SupplierLog.find().populate(
-      "supplier",
-      "firstname lastname email avatar"
-    );
+    const supplierLogs = await SupplierLog.find()
+      .populate("supplier", "firstname lastname email avatar")
+      .sort({ _id: -1 }); // Sort by _id field in descending order;
     // .populate("products.product");
 
     // Respond with the fetched supplier logs
