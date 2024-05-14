@@ -278,6 +278,8 @@ router.put("/update/:id", async (req, res) => {
         "Back job confirmed. Please proceed with the scheduled back job.";
     } else if (status === "BACKJOBCOMPLETED") {
       message = "Back job completed successfully. Thank you!";
+    } else if (status === "DONE") {
+      message = "Mechanic has completed servicing. Final checks in progress.";
     } else if (status === "") {
       message = "You have marked the appointment as completed.";
     }
@@ -552,7 +554,7 @@ router.put(
         },
         { new: true }
       );
-      
+
       console.log(updateAppointment);
 
       // // Extract only the necessary information to send in the response

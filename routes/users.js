@@ -296,7 +296,7 @@ router.post("/register", async (req, res) => {
     if (!user) return res.status(400).send("The user cannot be created!");
 
     // const emailVerification = `${process.env.FRONTEND_URL}/verify/email/${token.token}/${user._id}`;
-    const temporaryLink = `${process.env.WEB_URL}/verify/email/${verificationToken.token}/${user._id}`;
+    const temporaryLink = `${process.env.WEB_URL}/verify/email/${token.token}/${user._id}`;
 
     sendEmail(user.email, user.firstname + user.lastname, temporaryLink);
 
