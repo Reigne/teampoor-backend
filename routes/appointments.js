@@ -228,6 +228,130 @@ router.get("/:id", async (req, res) => {
   }
 });
 
+// Add additional service to existing appointment
+router.put("/add-service/:id", async (req, res) => {
+  try {
+    const appointmentId = req.params.id;
+    const serviceId = req.body.id;
+
+    if (!serviceId) {
+      return res.status(400).json({ error: "Service ID is required" });
+    }
+
+    const appointment = await Appointment.findById(appointmentId);
+
+    if (!appointment) {
+      return res.status(400).json({ error: "Appointment not found" });
+    }
+
+    const service = await Service.findById(serviceId);
+
+    if (!service) {
+      return res.status(400).json({ error: "Service not found" });
+    }
+
+    if (!service.isAvailable) {
+      return res.status(400).json({ error: "Service not available" });
+    }
+
+    let newAppointmentService = new AppointmentServices({
+      service: serviceId,
+    });
+
+    newAppointmentService = await newAppointmentService.save();
+
+    appointment.appointmentServices.push(newAppointmentService._id);
+    await appointment.save();
+
+    // Recalculate the total price based on all services associated with the appointment
+    const appointmentServices = await AppointmentServices.find({ _id: { $in: appointment.appointmentServices } }).populate('service');
+    let totalPrice = 0;
+    appointmentServices.forEach((appointmentService) => {
+      totalPrice += appointmentService.service.price;
+    });
+
+    // Update the appointment with the new totalPrice
+    appointment.totalPrice = totalPrice;
+    await appointment.save();
+
+    // Fetch the updated appointment details
+    const updatedAppointment = await Appointment.findById(appointmentId).lean();
+
+    res.status(200).json({
+      success: true,
+      message: "New Service Added",
+      data: updatedAppointment,
+    });
+  } catch (error) {
+    console.error("Error adding service:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+
+// Delete Service from Appointment
+router.delete("/delete-service/:id", async (req, res) => {
+  try {
+    const appointmentId = req.params.id;
+    const serviceId = req.body.id;
+
+    console.log("Service ID:", serviceId);
+
+    if (!serviceId) {
+      return res.status(400).json({ error: "Service ID is required" });
+    }
+
+    const appointment = await Appointment.findById(appointmentId);
+
+    if (!appointment) {
+      return res.status(400).json({ error: "Appointment not found" });
+    }
+
+    const serviceIndex = appointment.appointmentServices.findIndex((service) =>
+      service.equals(serviceId)
+    );
+
+    console.log(serviceIndex, "service index");
+
+    if (serviceIndex === -1) {
+      return res
+        .status(400)
+        .json({ error: "Service not found in appointment" });
+    }
+
+    // Remove the service from the appointment
+    appointment.appointmentServices.splice(serviceIndex, 1);
+    await appointment.save();
+
+    // Remove the service document from AppointmentServices collection
+    await AppointmentServices.findByIdAndRemove(serviceId);
+
+    // Recalculate the total price based on remaining services
+    const appointmentServices = await AppointmentServices.find({ _id: { $in: appointment.appointmentServices } }).populate('service');
+    let totalPrice = 0;
+    appointmentServices.forEach((appointmentService) => {
+      totalPrice += appointmentService.service.price;
+    });
+
+    // Update the appointment with the new totalPrice
+    appointment.totalPrice = totalPrice;
+    await appointment.save();
+
+    // Fetch the updated appointment details
+    const updatedAppointment = await Appointment.findById(appointmentId).lean();
+
+    res.status(200).json({
+      success: true,
+      message: "Service Deleted",
+      data: updatedAppointment,
+    });
+  } catch (error) {
+    console.error("Error deleting service:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+
 // Update the status of an appointment
 router.put("/update/:id", async (req, res) => {
   try {
